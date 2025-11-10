@@ -1,0 +1,49 @@
+# Visual Studio 用户配置和缓存
+.vs/
+*.user
+*.suo
+
+# 编译输出目录
+x64/
+Win32/
+Debug/
+Release/
+[Dd]ebug/
+[Rr]elease/
+
+# 编译中间文件
+*.obj
+*.pdb
+*.ilk
+*.idb
+*.pch
+*.ipch
+
+# 编译日志和临时文件
+*.tlog
+*.log
+*.lastbuildstate
+*.recipe
+*.iobj
+*.ipdb
+
+# 资源编译输出（注意：不是 res/ 目录下的源文件）
+src/FishGame/FishGame/x64/
+src/FishGame/FishGame/Win32/
+*.res
+
+# 可执行文件（源码目录下的）
+src/FishGame/FishGame.exe
+src/FishGame/x64/Debug/FishGame.exe
+
+# 保留 bin/ 目录下的发布版本
+# bin/FishGame.exe 会被保留
+
+# IntelliSense 数据库
+*.VC.db
+*.VC.opendb
+*.VC.db-*
+
+# Windows 临时文件
+Thumbs.db
+Desktop.ini
