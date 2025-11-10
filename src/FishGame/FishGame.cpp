@@ -411,6 +411,10 @@ Unit* CreateUnit(int side, int type, int x, int y, int health)
 	unit->vx = 0;
 	unit->vy = 0;
 	unit->health = health;
+
+	unit->size = 1.0f;
+	unit->isPlayer = false;
+
 	return unit;
 }
 
@@ -471,9 +475,23 @@ void InitStage(HWND hWnd, int stageID)
 		// 按场景初始化单位
 		switch (stageID) {
 		case STAGE_1:
-			units.push_back(CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1, 200, 200, 100));
-			units.push_back(CreateUnit(UNIT_SIDE_FISH2, UNIT_FISH_TYPE2, 600, 200, 100));
+		{
+			Unit* player = CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1,
+				WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 100);
+			player->isPlayer = true;
+			player->size = 1.5f;  // 玩家初始稍大
+			units.push_back(player);
+
+			// 创建若干AI小鱼
+			for (int i = 0; i < 5; i++) {
+				int x = rand() % (WINDOW_WIDTH - 100) + 50;
+				int y = rand() % (WINDOW_HEIGHT - 100) + 50;
+				Unit* aiFish = CreateUnit(UNIT_SIDE_FISH2, UNIT_FISH_TYPE2, x, y, 100);
+				aiFish->size = 1.0;
+				units.push_back(aiFish);
+			}
 			break;
+		}
 		default:
 			break;
 		}
@@ -717,9 +735,14 @@ void Paint(HWND hWnd)
 		for (int i = 0; i < units.size(); i++) {
 			Unit* unit = units[i];
 			SelectObject(hdc_loadBmp, unit->img);
+
+			//根据size调整绘制尺寸
+			int drawWidth = (int)(UNIT_SIZE_X * unit->size);
+			int drawHeight = (int)(UNIT_SIZE_Y * unit->size);
+
 			TransparentBlt(
-				hdc_memBuffer, unit->x - 0.5 * UNIT_SIZE_X, unit->y - 0.5 * UNIT_SIZE_Y,
-				UNIT_SIZE_X, UNIT_SIZE_Y,
+				hdc_memBuffer, unit->x - 0.5 * drawWidth, unit->y - 0.5 * drawHeight,
+				drawWidth, drawHeight,
 				hdc_loadBmp, UNIT_SIZE_X * unit->frame_column, UNIT_SIZE_Y * unit->frame_row, UNIT_SIZE_X, UNIT_SIZE_Y,
 				RGB(255, 255, 255)
 			);
@@ -800,7 +823,7 @@ HBITMAP InitBackGround(HWND hWnd, HBITMAP bmp_src) {
 
 	StretchBlt(
 		hdc_memBuffer,
-		0, 0,WINDOW_WIDTH, WINDOW_HEIGHT, // 目标尺寸
+		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, // 目标尺寸
 		hdc_loadBmp,
 		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
 		SRCCOPY                    // 拷贝整图

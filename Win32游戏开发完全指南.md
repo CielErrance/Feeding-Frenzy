@@ -818,7 +818,7 @@ case STAGE_1:
     Unit* player = CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1,
                               WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 100);
     player->isPlayer = true;
-    player->size = 1.5f;  // 玩家初始稍大
+    player->size = 1.5f;  468// 玩家初始稍大
     units.push_back(player);
 
     // 创建若干AI小鱼
@@ -1260,7 +1260,7 @@ if (currentStage->stageID == STAGE_1) {
    for (all units) {
        double dist = sqrt(...);
    }
-
+   
    // 好：先比较平方，只在必要时计算平方根
    double distSq = dx*dx + dy*dy;
    if (distSq < threshold * threshold) {
@@ -1277,7 +1277,7 @@ if (currentStage->stageID == STAGE_1) {
        // ... 使用
        DeleteObject(pen);
    }
-
+   
    // 好：创建一次，重复使用（或移到绘制函数外）
    ```
 

@@ -126,6 +126,9 @@ struct Unit
 	double vx;		//速度x
 	double vy;		//速度y
 	int health;		//生命值
+
+	float size;		//鱼的大小
+	bool isPlayer;	//是否为玩家控制
 };
 
 
