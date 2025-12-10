@@ -132,6 +132,10 @@ struct Unit
 
 	float size;		//鱼的大小
 	bool isPlayer;	//是否为玩家控制
+
+	// 新增字段用于波浪运动
+	double wave_timer;	// 波浪运动计时器
+	int initial_y;		// 初始Y坐标，作为波浪运动的基准线
 };
 
 
@@ -192,6 +196,7 @@ void UpdateUnits(HWND hWnd);
 //单位行为函数
 void UnitBehaviour_1(Unit* unit);
 void UnitBehaviour_2(Unit* unit);
+void UnitBehaviour_SwimAcross(Unit* unit);
 
 
 //TODO: 添加游戏需要的更多函数

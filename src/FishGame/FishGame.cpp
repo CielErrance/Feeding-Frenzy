@@ -352,6 +352,45 @@ void TimerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
 	UpdateUnits(hWnd);
 
+	// STAGE_1 随机生成小鱼
+	if (currentStage != NULL && currentStage->stageID == STAGE_1) {
+		// 约 3% 的概率生成一条新鱼 (30ms * 33 ≈ 1秒生成一条)
+		if (rand() % 100 < 3) {
+			int side = rand() % 2; // 0: 左边生成, 1: 右边生成
+			int y = rand() % (WINDOW_HEIGHT - 100) + 50;
+			int x, direction;
+			double vx;
+
+			if (side == 0) { // 左边生成，向右游
+				x = -80;
+				vx = 2.0 + (rand() % 20) / 10.0; // 速度 2.0 ~ 4.0
+				direction = UNIT_DIRECT_RIGHT;
+			}
+			else { // 右边生成，向左游
+				x = WINDOW_WIDTH + 80;
+				vx = -(2.0 + (rand() % 20) / 10.0);
+				direction = UNIT_DIRECT_LEFT;
+			}
+
+			Unit* fish = CreateUnit(UNIT_SIDE_FISH2, UNIT_FISH_TYPE2, x, y, 100);
+			fish->vx = vx;
+			fish->vy = 0; // 垂直由 sin 控制
+			fish->direction = direction;
+			fish->state = UNIT_STATE_WALK; // 始终为行走状态
+			fish->frame_sequence = FRAMES_WALK;
+			fish->frame_count = FRAMES_WALK_COUNT;
+			
+			// 设置波浪运动参数
+			fish->initial_y = y;
+			fish->wave_timer = (rand() % 314) / 100.0; // 随机初始相位
+
+			// 设置正确的贴图方向
+			fish->frame_column = fish->type + fish->direction * (UNIT_LAST_FRAME - 2 * fish->type);
+
+			units.push_back(fish);
+		}
+	}
+
 	//刷新显示
 	InvalidateRect(hWnd, NULL, FALSE);
 }
@@ -414,6 +453,9 @@ Unit* CreateUnit(int side, int type, int x, int y, int health)
 
 	unit->size = 1.0f;
 	unit->isPlayer = false;
+
+	unit->wave_timer = 0;
+	unit->initial_y = y;
 
 	return unit;
 }
@@ -482,14 +524,7 @@ void InitStage(HWND hWnd, int stageID)
 			player->size = 1.5f;  // 玩家初始稍大
 			units.push_back(player);
 
-			// 创建若干AI小鱼
-			for (int i = 0; i < 5; i++) {
-				int x = rand() % (WINDOW_WIDTH - 100) + 50;
-				int y = rand() % (WINDOW_HEIGHT - 100) + 50;
-				Unit* aiFish = CreateUnit(UNIT_SIDE_FISH2, UNIT_FISH_TYPE2, x, y, 100);
-				aiFish->size = 1.0;
-				units.push_back(aiFish);
-			}
+			// 移除初始生成的5条小鱼，改为动态生成
 			break;
 		}
 		default:
@@ -516,8 +551,19 @@ void UpdateUnits(HWND hWnd)
 			UnitBehaviour_1(unit);
 			break;
 		case UNIT_FISH_TYPE2:
-			UnitBehaviour_2(unit);
+			UnitBehaviour_SwimAcross(unit); // 改用横向游动行为
 			break;
+		}
+	}
+
+	// 清理已死亡（health <= 0）的单位 (包含被吃掉或游出边界的)
+	for (int i = 0; i < units.size(); ) {
+		if (units[i]->health <= 0) {
+			delete units[i];
+			units.erase(units.begin() + i);
+		}
+		else {
+			i++;
 		}
 	}
 
@@ -661,6 +707,35 @@ void UnitBehaviour_2(Unit* unit) {
 	unit->frame_column = column + unit->direction * (UNIT_LAST_FRAME - 2 * column);
 
 
+}
+
+// 横向游动行为：直线移动 + 上下浮动
+void UnitBehaviour_SwimAcross(Unit* unit) {
+	// 更新波浪计时器
+	unit->wave_timer += 0.05;
+
+	// 水平移动
+	unit->x += unit->vx;
+
+	// 垂直浮动 (振幅 30，基于初始高度)
+	unit->y = unit->initial_y + sin(unit->wave_timer) * 30;
+
+	// 动画帧更新
+	unit->frame_id++;
+	unit->frame_id = unit->frame_id % unit->frame_count;
+
+	int column = unit->frame_sequence[unit->frame_id];
+	unit->frame_column = column + unit->direction * (UNIT_LAST_FRAME - 2 * column);
+
+	// 边界检查与销毁
+	// 向右游（vx > 0），超出右边界销毁
+	if (unit->vx > 0 && unit->x > WINDOW_WIDTH + 100) {
+		unit->health = 0; // 标记销毁
+	}
+	// 向左游（vx < 0），超出左边界销毁
+	else if (unit->vx < 0 && unit->x < -100) {
+		unit->health = 0; // 标记销毁
+	}
 }
 
 void UnitBehaviour_1(Unit* unit) {
