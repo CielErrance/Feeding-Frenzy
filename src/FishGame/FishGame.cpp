@@ -304,15 +304,15 @@ void KeyUp(HWND hWnd, WPARAM wParam, LPARAM lParam)
 // 鼠标移动事件处理函数
 void MouseMove(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
-	mouseX = LOWORD(lParam);
-	mouseY = HIWORD(lParam);
+	mouseX = GET_X_LPARAM(lParam);
+	mouseY = GET_Y_LPARAM(lParam);
 }
 
 // 鼠标左键按下事件处理函数
 void LButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
-	mouseX = LOWORD(lParam);
-	mouseY = HIWORD(lParam);
+	mouseX = GET_X_LPARAM(lParam);
+	mouseY = GET_Y_LPARAM(lParam);
 	mouseDown = true;
 
 	for (int i = 0; i < buttons.size(); i++)
@@ -342,8 +342,8 @@ void LButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 // 鼠标左键松开事件处理函数
 void LButtonUp(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
-	mouseX = LOWORD(lParam);
-	mouseY = HIWORD(lParam);
+	mouseX = GET_X_LPARAM(lParam);
+	mouseY = GET_Y_LPARAM(lParam);
 	mouseDown = false;
 }
 
@@ -520,21 +520,56 @@ void UpdateUnits(HWND hWnd)
 			break;
 		}
 	}
-	if (units.size() >= 2) {
-		Unit* fish1 = units[0];
-		Unit* fish2 = units[1];
 
-		double dx = fish1->x - fish2->x;
-		double dy = fish1->y - fish2->y;
-		double dist = sqrt(dx * dx + dy * dy);
-
-		// 当距离小于50像素时，判定为碰撞
-		if (dist < 50) {
-			progressValue += 1;
-			if (progressValue > 100) progressValue = 100; // 限制上限
+	// 查找玩家单位
+	Unit* player = NULL;
+	for (int i = 0; i < units.size(); i++) {
+		if (units[i]->isPlayer) {
+			player = units[i];
+			break;
 		}
 	}
 
+	// 吃鱼碰撞检测
+	if (player) {
+		// 获取玩家当前显示的图片帧索引
+		int currentFrame = 0;
+		if (player->frame_sequence && player->frame_count > 0) {
+			currentFrame = player->frame_sequence[player->frame_id];
+		}
+
+		// 只要攻击状态开始（帧索引>=3），且处于攻击状态，就进行吃鱼判定
+		if (player->state == UNIT_STATE_ATTACK && (currentFrame >= 3)) {
+			for (int i = 0; i < units.size(); ) {
+				Unit* other = units[i];
+				// 只有非玩家且不同阵营的鱼才会被吃
+				if (other != player && other->side != player->side) {
+					double dx = player->x - other->x;
+					double dy = player->y - other->y;
+					double dist = sqrt(dx * dx + dy * dy);
+
+					// 判定距离：基于双方大小，随玩家体型增大而增加判定范围
+					double eatDist = (UNIT_SIZE_X * player->size + UNIT_SIZE_X * other->size) * 0.5;
+
+					if (dist < eatDist) {
+						// 玩家长大
+						player->size += 0.1f;
+						if (player->size > 3.0f) player->size = 3.0f; // 限制最大大小
+
+						// 增加进度
+						progressValue += 5;
+						if (progressValue > 100) progressValue = 100;
+
+						// 删除被吃掉的鱼
+						delete other;
+						units.erase(units.begin() + i);
+						continue; // 删除后索引自动指向下一个，无需递增
+					}
+				}
+				i++;
+			}
+		}
+	}
 }
 
 //单位行为函数
@@ -634,6 +669,27 @@ void UnitBehaviour_1(Unit* unit) {
 	double dirY = mouseY - unit->y;
 	double dirLen = sqrt(dirX * dirX + dirY * dirY) + 0.0001;
 
+	// 寻找最近的敌对小鱼
+	Unit* nearestEnemy = NULL;
+	double minEnemyDist = 100000.0;
+
+	for (int i = 0; i < units.size(); i++) {
+		Unit* other = units[i];
+		if (other != unit && other->side != unit->side) {
+			double dx = other->x - unit->x;
+			double dy = other->y - unit->y;
+			double dist = sqrt(dx * dx + dy * dy);
+			if (dist < minEnemyDist) {
+				minEnemyDist = dist;
+				nearestEnemy = other;
+			}
+		}
+	}
+
+	// 定义最大速度和加速度
+	double maxSpeed = UNIT_SPEED * 1.5; // 略微加快速度 (原3.0 -> 4.5)
+	double acceleration = 0.2; // 加速度因子
+	double friction = 0.99;    // 摩擦力/减速因子 (减小摩擦，避免攻击时速度骤降追不上鱼)
 
 	if (dirX > 0) {
 		unit->direction = UNIT_DIRECT_RIGHT;
@@ -650,17 +706,33 @@ void UnitBehaviour_1(Unit* unit) {
 		next_state = UNIT_STATE_WALK;
 		break;
 	case UNIT_STATE_WALK:
-		if (dirLen < 32) {
+		// 攻击判定改为：如果有最近的敌人且距离小于阈值（例如 50 + 双方体型修正），则攻击
+		// 这里使用一个简单的固定阈值配合体型修正
+		if (nearestEnemy && minEnemyDist < (32 + UNIT_SIZE_X * unit->size * 0.5 + UNIT_SIZE_X * nearestEnemy->size * 0.5)) {
 			next_state = UNIT_STATE_ATTACK;
 		}
 		else {
-			unit->vx = dirX / dirLen * UNIT_SPEED;
-			unit->vy = dirY / dirLen * UNIT_SPEED;
+			// 平滑加速逻辑
+			double targetVx = (dirX / dirLen) * maxSpeed;
+			double targetVy = (dirY / dirLen) * maxSpeed;
+
+			// 简单的插值实现加速
+			unit->vx += (targetVx - unit->vx) * acceleration;
+			unit->vy += (targetVy - unit->vy) * acceleration;
 		}
 		break;
 	case UNIT_STATE_ATTACK:
-		if (dirLen >= 32) {
-			next_state = UNIT_STATE_WALK;
+		// 攻击时减速
+		unit->vx *= friction;
+		unit->vy *= friction;
+
+		// 只有当攻击动画播放完毕（最后一帧）才考虑切换状态
+		if (unit->frame_id >= unit->frame_count - 1) {
+			// 如果附近没有敌人，或者最近敌人距离拉开，切换回行走
+			if (!nearestEnemy || minEnemyDist >= (32 + UNIT_SIZE_X * unit->size * 0.5 + UNIT_SIZE_X * nearestEnemy->size * 0.5)) {
+				next_state = UNIT_STATE_WALK;
+			}
+			// 否则继续攻击（循环播放）
 		}
 		break;
 	};
@@ -680,14 +752,12 @@ void UnitBehaviour_1(Unit* unit) {
 		case UNIT_STATE_WALK:
 			unit->frame_sequence = FRAMES_WALK;
 			unit->frame_count = FRAMES_WALK_COUNT;
-			unit->vx = dirX / dirLen * UNIT_SPEED;
-			unit->vy = dirY / dirLen * UNIT_SPEED;
+			// 注意：进入 WALK 状态时不重置速度为0，保留当前惯性以便平滑过渡
 			break;
 		case UNIT_STATE_ATTACK:
 			unit->frame_sequence = FRAMES_ATTACK;
 			unit->frame_count = FRAMES_ATTACK_COUNT;
-			unit->vx = 0;
-			unit->vy = 0;
+			// 攻击开始时不强制停止，依靠 friction 减速
 			break;
 		};
 	}
@@ -704,7 +774,6 @@ void UnitBehaviour_1(Unit* unit) {
 
 
 }
-
 
 
 #pragma endregion
