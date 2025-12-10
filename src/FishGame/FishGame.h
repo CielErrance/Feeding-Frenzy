@@ -45,6 +45,8 @@
 #define UNIT_SIDE_FISH2			10001	//小鱼2
 
 
+
+
 //单位类型定义
 #define UNIT_FISH_TYPE1		1		//第一种类型
 #define UNIT_FISH_TYPE2		2		//第二种类型

@@ -538,47 +538,52 @@ void UpdateUnits(HWND hWnd)
 }
 
 //单位行为函数
-void UnitBehaviour_1(Unit* unit) {
+void UnitBehaviour_2(Unit* unit) {
 
-	double dirX = mouseX - unit->x;
-	double dirY = mouseY - unit->y;
-	double dirLen = sqrt(dirX * dirX + dirY * dirY) + 0.0001;
-
-
-	if (dirX > 0) {
-		unit->direction = UNIT_DIRECT_RIGHT;
-	}
-	else {
-		unit->direction = UNIT_DIRECT_LEFT;
-	}
-
-
-	//判断当前状态, 以及判断是否需要状态变化
+	// 简单的随机游走逻辑
+	int change_prob = rand() % 100;
 	int next_state = unit->state;
-	switch (unit->state) {
-	case UNIT_STATE_HOLD:
-		if (dirLen < 400) {
+
+	// 边界检查与反弹
+	if (unit->x < 0 || unit->x > WINDOW_WIDTH) {
+		unit->vx = -unit->vx;
+		unit->x += unit->vx * 2;
+	}
+	if (unit->y < 0 || unit->y > WINDOW_HEIGHT) {
+		unit->vy = -unit->vy;
+		unit->y += unit->vy * 2;
+	}
+
+	// 状态转换逻辑
+	if (unit->state == UNIT_STATE_HOLD) {
+		// 在 HOLD 状态，有 5% 概率开始移动
+		if (change_prob < 5) {
 			next_state = UNIT_STATE_WALK;
+			double angle = (rand() % 360) * 3.14159 / 180.0;
+			unit->vx = cos(angle) * UNIT_SPEED;
+			unit->vy = sin(angle) * UNIT_SPEED;
 		}
-		break;
-	case UNIT_STATE_WALK:
-		if (dirLen >= 400) {
+	}
+	else if (unit->state == UNIT_STATE_WALK) {
+		// 在 WALK 状态，有 2% 概率停下来
+		if (change_prob < 2) {
 			next_state = UNIT_STATE_HOLD;
 		}
-		else if (dirLen < 200) {
-			next_state = UNIT_STATE_ATTACK;
+		// 或者有 2% 概率改变方向
+		else if (change_prob < 4) {
+			double angle = (rand() % 360) * 3.14159 / 180.0;
+			unit->vx = cos(angle) * UNIT_SPEED;
+			unit->vy = sin(angle) * UNIT_SPEED;
 		}
-		else {
-			unit->vx = dirX / dirLen * UNIT_SPEED;
-			unit->vy = dirY / dirLen * UNIT_SPEED;
-		}
-		break;
-	case UNIT_STATE_ATTACK:
-		if (dirLen >= 200) {
-			next_state = UNIT_STATE_WALK;
-		}
-		break;
-	};
+	}
+
+	// 更新方向
+	if (unit->vx > 0) {
+		unit->direction = UNIT_DIRECT_RIGHT;
+	}
+	else if (unit->vx < 0) {
+		unit->direction = UNIT_DIRECT_LEFT;
+	}
 
 	if (next_state != unit->state) {
 		//状态变化
@@ -595,8 +600,11 @@ void UnitBehaviour_1(Unit* unit) {
 		case UNIT_STATE_WALK:
 			unit->frame_sequence = FRAMES_WALK;
 			unit->frame_count = FRAMES_WALK_COUNT;
-			unit->vx = dirX / dirLen * UNIT_SPEED;
-			unit->vy = dirY / dirLen * UNIT_SPEED;
+			if (unit->vx == 0 && unit->vy == 0) {
+				double angle = (rand() % 360) * 3.14159 / 180.0;
+				unit->vx = cos(angle) * UNIT_SPEED;
+				unit->vy = sin(angle) * UNIT_SPEED;
+			}
 			break;
 		case UNIT_STATE_ATTACK:
 			unit->frame_sequence = FRAMES_ATTACK;
@@ -620,7 +628,7 @@ void UnitBehaviour_1(Unit* unit) {
 
 }
 
-void UnitBehaviour_2(Unit* unit) {
+void UnitBehaviour_1(Unit* unit) {
 
 	double dirX = mouseX - unit->x;
 	double dirY = mouseY - unit->y;
