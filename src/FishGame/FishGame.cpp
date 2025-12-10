@@ -379,7 +379,7 @@ void TimerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
 			fish->state = UNIT_STATE_WALK; // 始终为行走状态
 			fish->frame_sequence = FRAMES_WALK;
 			fish->frame_count = FRAMES_WALK_COUNT;
-			
+
 			// 设置波浪运动参数
 			fish->initial_y = y;
 			fish->wave_timer = (rand() % 314) / 100.0; // 随机初始相位
@@ -762,8 +762,9 @@ void UnitBehaviour_1(Unit* unit) {
 	}
 
 	// 定义最大速度和加速度
-	double maxSpeed = UNIT_SPEED * 1.5; // 略微加快速度 (原3.0 -> 4.5)
-	double acceleration = 0.2; // 加速度因子
+	// 速度随体型增大而增加: 基础速度 4.5 + 体型加成
+	double maxSpeed = (UNIT_SPEED * 3) + (unit->size * 1.5);
+	double acceleration = 0.4; // 加速度因子
 	double friction = 0.99;    // 摩擦力/减速因子 (减小摩擦，避免攻击时速度骤降追不上鱼)
 
 	if (dirX > 0) {
@@ -797,9 +798,16 @@ void UnitBehaviour_1(Unit* unit) {
 		}
 		break;
 	case UNIT_STATE_ATTACK:
-		// 攻击时减速
-		unit->vx *= friction;
-		unit->vy *= friction;
+		{
+			// 攻击时允许继续移动，以避免漂移感
+			// 使用稍低的加速度，模拟攻击时的僵直但保留控制权
+			double attackAccel = acceleration * 0.8; 
+			double targetVx = (dirX / dirLen) * maxSpeed;
+			double targetVy = (dirY / dirLen) * maxSpeed;
+
+			unit->vx += (targetVx - unit->vx) * attackAccel;
+			unit->vy += (targetVy - unit->vy) * attackAccel;
+		}
 
 		// 只有当攻击动画播放完毕（最后一帧）才考虑切换状态
 		if (unit->frame_id >= unit->frame_count - 1) {
