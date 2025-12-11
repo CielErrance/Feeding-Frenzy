@@ -157,7 +157,6 @@
   <ItemGroup>
     <Image Include="res\Fish1.bmp" />
     <Image Include="res\Fish2.bmp" />
-    <Image Include="res\Grass.bmp" />
     <Image Include="res\icon.ico" />
     <Image Include="res\stage_background.bmp" />
     <Image Include="res\START.bmp" />

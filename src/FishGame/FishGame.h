@@ -29,7 +29,7 @@
 #pragma region 宏定义
 
 #define WINDOW_TITLEBARHEIGHT	32			//标题栏高度
-#define WINDOW_WIDTH			1024		//游戏窗口宽度
+#define WINDOW_WIDTH			1524		//游戏窗口宽度
 #define WINDOW_HEIGHT			768			//游戏窗口高度
 
 
@@ -37,8 +37,12 @@
 #define STAGE_1					1		//第一个游戏场景的ID
 
 
-#define UNIT_SIZE_X				64		//单位的宽度
-#define UNIT_SIZE_Y				64		//单位的高度
+// 移除统一的 UNIT_SIZE 定义，改为针对不同类型的定义
+// 各类鱼的精灵帧尺寸配置
+#define FISH_TYPE1_FRAME_WIDTH		64
+#define FISH_TYPE1_FRAME_HEIGHT		64
+#define FISH_TYPE2_FRAME_WIDTH		64  // 如果需要大鱼，可以在这里修改，例如 128
+#define FISH_TYPE2_FRAME_HEIGHT		64
 #define UNIT_LAST_FRAME			11		//单位的动画帧最大值
 
 //不同鱼的定义
@@ -113,6 +117,10 @@ struct Unit
 
 	int frame_row;			//当前显示的是图像的第几行
 	int frame_column;		//当前显示的是图像的第几列
+
+	// 新增：该单位在精灵图上的单帧尺寸
+	int frame_width;
+	int frame_height;
 
 	int* frame_sequence;		//当前的帧序列
 	int frame_count;		//帧序列的长度

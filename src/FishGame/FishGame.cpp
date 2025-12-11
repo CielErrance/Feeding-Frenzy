@@ -242,7 +242,7 @@ void InitGame(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	//添加按钮
 
 	Button* startButton = CreateButton(BUTTON_STARTGAME, bmp_StartButton, BUTTON_STARTGAME_WIDTH, BUTTON_STARTGAME_HEIGHT,
-		(WINDOW_WIDTH - BUTTON_STARTGAME_WIDTH) / 2, (WINDOW_WIDTH - BUTTON_STARTGAME_HEIGHT) / 2);
+		(WINDOW_WIDTH - BUTTON_STARTGAME_WIDTH) / 2, (WINDOW_HEIGHT - BUTTON_STARTGAME_HEIGHT) / 2);
 	buttons.push_back(startButton);
 
 	//初始化背景
@@ -437,6 +437,20 @@ Unit* CreateUnit(int side, int type, int x, int y, int health)
 	unit->type = type;
 	unit->state = UNIT_STATE_HOLD;
 
+	// 根据类型设置帧尺寸
+	if (type == UNIT_FISH_TYPE1) {
+		unit->frame_width = FISH_TYPE1_FRAME_WIDTH;
+		unit->frame_height = FISH_TYPE1_FRAME_HEIGHT;
+	}
+	else if (type == UNIT_FISH_TYPE2) {
+		unit->frame_width = FISH_TYPE2_FRAME_WIDTH;
+		unit->frame_height = FISH_TYPE2_FRAME_HEIGHT;
+	}
+	else {
+		// 默认值
+		unit->frame_width = 64;
+		unit->frame_height = 64;
+	}
 
 	unit->frame_row = type;
 	unit->frame_column = UNIT_LAST_FRAME * unit->direction;
@@ -595,7 +609,7 @@ void UpdateUnits(HWND hWnd)
 					double dist = sqrt(dx * dx + dy * dy);
 
 					// 判定距离：基于双方大小，随玩家体型增大而增加判定范围
-					double eatDist = (UNIT_SIZE_X * player->size + UNIT_SIZE_X * other->size) * 0.5;
+					double eatDist = (player->frame_width * player->size + other->frame_width * other->size) * 0.5;
 
 					if (dist < eatDist) {
 						// 玩家长大
@@ -761,17 +775,32 @@ void UnitBehaviour_1(Unit* unit) {
 		}
 	}
 
-	// 定义最大速度和加速度
-	// 速度随体型增大而增加: 基础速度 4.5 + 体型加成
-	double maxSpeed = (UNIT_SPEED * 3) + (unit->size * 1.5);
-	double acceleration = 0.4; // 加速度因子
+	double maxSpeed = (UNIT_SPEED * 1.5) + (unit->size * 1.5);
+	double acceleration = 0.2; // 加速度因子
 	double friction = 0.99;    // 摩擦力/减速因子 (减小摩擦，避免攻击时速度骤降追不上鱼)
+	double stopRadius = 8.0;   // 停止半径，防止在鼠标附近震荡
 
-	if (dirX > 0) {
-		unit->direction = UNIT_DIRECT_RIGHT;
+	// 仅当距离大于停止半径时才更新朝向和计算目标速度
+	// 否则保持当前朝向并减速
+	double targetVx = 0;
+	double targetVy = 0;
+	bool nearMouse = (dirLen < stopRadius);
+
+	if (!nearMouse) {
+		if (dirX > 0) {
+			unit->direction = UNIT_DIRECT_RIGHT;
+		}
+		else {
+			unit->direction = UNIT_DIRECT_LEFT;
+		}
+		// 正常计算目标速度
+		targetVx = (dirX / dirLen) * maxSpeed;
+		targetVy = (dirY / dirLen) * maxSpeed;
 	}
 	else {
-		unit->direction = UNIT_DIRECT_LEFT;
+		// 在停止半径内，目标速度为0，且不改变朝向
+		targetVx = 0;
+		targetVy = 0;
 	}
 
 
@@ -784,40 +813,50 @@ void UnitBehaviour_1(Unit* unit) {
 	case UNIT_STATE_WALK:
 		// 攻击判定改为：如果有最近的敌人且距离小于阈值（例如 50 + 双方体型修正），则攻击
 		// 这里使用一个简单的固定阈值配合体型修正
-		if (nearestEnemy && minEnemyDist < (32 + UNIT_SIZE_X * unit->size * 0.5 + UNIT_SIZE_X * nearestEnemy->size * 0.5)) {
+		if (nearestEnemy && minEnemyDist < (32 + unit->frame_width * unit->size * 0.5 + nearestEnemy->frame_width * nearestEnemy->size * 0.5)) {
 			next_state = UNIT_STATE_ATTACK;
 		}
 		else {
 			// 平滑加速逻辑
-			double targetVx = (dirX / dirLen) * maxSpeed;
-			double targetVy = (dirY / dirLen) * maxSpeed;
-
-			// 简单的插值实现加速
-			unit->vx += (targetVx - unit->vx) * acceleration;
-			unit->vy += (targetVy - unit->vy) * acceleration;
+			if (nearMouse) {
+				// 在停止半径内，强力减速（模拟刹车）
+				unit->vx *= 0.6;
+				unit->vy *= 0.6;
+				if (abs(unit->vx) < 0.1) unit->vx = 0;
+				if (abs(unit->vy) < 0.1) unit->vy = 0;
+			}
+			else {
+				// 简单的插值实现加速
+				unit->vx += (targetVx - unit->vx) * acceleration;
+				unit->vy += (targetVy - unit->vy) * acceleration;
+			}
 		}
 		break;
 	case UNIT_STATE_ATTACK:
-		{
-			// 攻击时允许继续移动，以避免漂移感
-			// 使用稍低的加速度，模拟攻击时的僵直但保留控制权
-			double attackAccel = acceleration * 0.8; 
-			double targetVx = (dirX / dirLen) * maxSpeed;
-			double targetVy = (dirY / dirLen) * maxSpeed;
+	{
+		// 攻击时允许继续移动，以避免漂移感
+		// 使用稍低的加速度，模拟攻击时的僵直但保留控制权
+		double attackAccel = acceleration * 0.8;
 
+		// 如果在停止半径内，就不再施加目标速度，而是自然减速
+		if (nearMouse) {
+			unit->vx *= 0.9;
+			unit->vy *= 0.9;
+		}
+		else {
 			unit->vx += (targetVx - unit->vx) * attackAccel;
 			unit->vy += (targetVy - unit->vy) * attackAccel;
 		}
+	}
 
-		// 只有当攻击动画播放完毕（最后一帧）才考虑切换状态
-		if (unit->frame_id >= unit->frame_count - 1) {
-			// 如果附近没有敌人，或者最近敌人距离拉开，切换回行走
-			if (!nearestEnemy || minEnemyDist >= (32 + UNIT_SIZE_X * unit->size * 0.5 + UNIT_SIZE_X * nearestEnemy->size * 0.5)) {
-				next_state = UNIT_STATE_WALK;
-			}
-			// 否则继续攻击（循环播放）
+	// 只有当攻击动画播放完毕（最后一帧）才考虑切换状态
+	if (unit->frame_id >= unit->frame_count - 1) {
+		// 如果附近没有敌人，或者最近敌人距离拉开，切换回行走
+		if (!nearestEnemy || minEnemyDist >= (32 + unit->frame_width * unit->size * 0.5 + nearestEnemy->frame_width * nearestEnemy->size * 0.5)) {
+			next_state = UNIT_STATE_WALK;
 		}
-		break;
+		// 否则继续攻击（循环播放）
+	}	break;
 	};
 
 	if (next_state != unit->state) {
@@ -885,25 +924,25 @@ void Paint(HWND hWnd)
 	// 按场景分类绘制内容到缓存
 	if (currentStage->stageID == STAGE_STARTMENU) {
 		SelectObject(hdc_loadBmp, bmp_Start_Background);
-		BitBlt(hdc_memBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_loadBmp, 0, 0, SRCCOPY);
+		TransparentBlt(hdc_memBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_loadBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, RGB(255, 255, 255));
 	}
 	else if (currentStage->stageID >= STAGE_1 && currentStage->stageID <= STAGE_1) //TODO：添加多个游戏场景
 	{
 		SelectObject(hdc_loadBmp, bmp_Stage_Background);
-		BitBlt(hdc_memBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_loadBmp, 0, 0, SRCCOPY);
+		TransparentBlt(hdc_memBuffer, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_loadBmp, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, RGB(255, 255, 255));
 		// 绘制单位到缓存
 		for (int i = 0; i < units.size(); i++) {
 			Unit* unit = units[i];
 			SelectObject(hdc_loadBmp, unit->img);
 
 			//根据size调整绘制尺寸
-			int drawWidth = (int)(UNIT_SIZE_X * unit->size);
-			int drawHeight = (int)(UNIT_SIZE_Y * unit->size);
+			int drawWidth = (int)(unit->frame_width * unit->size);
+			int drawHeight = (int)(unit->frame_height * unit->size);
 
 			TransparentBlt(
 				hdc_memBuffer, unit->x - 0.5 * drawWidth, unit->y - 0.5 * drawHeight,
 				drawWidth, drawHeight,
-				hdc_loadBmp, UNIT_SIZE_X * unit->frame_column, UNIT_SIZE_Y * unit->frame_row, UNIT_SIZE_X, UNIT_SIZE_Y,
+				hdc_loadBmp, unit->frame_width * unit->frame_column, unit->frame_height * unit->frame_row, unit->frame_width, unit->frame_height,
 				RGB(255, 255, 255)
 			);
 		}
@@ -981,12 +1020,16 @@ HBITMAP InitBackGround(HWND hWnd, HBITMAP bmp_src) {
 	// 加载资源
 	SelectObject(hdc_loadBmp, bmp_src);
 
+	// 获取源位图的实际尺寸
+	BITMAP bm;
+	GetObject(bmp_src, sizeof(BITMAP), &bm);
+
 	StretchBlt(
 		hdc_memBuffer,
-		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, // 目标尺寸
+		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, // 目标尺寸 (窗口大小)
 		hdc_loadBmp,
-		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
-		SRCCOPY                    // 拷贝整图
+		0, 0, bm.bmWidth, bm.bmHeight,     // 源尺寸 (图片实际大小)
+		SRCCOPY                            // 拷贝整图
 	);
 
 	// 回显到窗口（可选，仅初始化时）

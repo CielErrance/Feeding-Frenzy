@@ -12,6 +12,15 @@
     <Filter Include="资源文件">
       <UniqueIdentifier>{146b43ce-58cc-4a8a-b264-b41c88fd83de}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\Fish">
+      <UniqueIdentifier>{4ac13b25-e58d-4108-83bb-7988c6636117}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\Background">
+      <UniqueIdentifier>{2ce1c344-7995-449d-b167-aa8857aa2df0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\UI">
+      <UniqueIdentifier>{73d3b0b8-4c76-4cee-bf4c-3ef1a53eb7c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -22,26 +31,23 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\START.bmp">
-      <Filter>资源文件</Filter>
-    </Image>
-    <Image Include="res\Grass.bmp">
-      <Filter>资源文件</Filter>
-    </Image>
     <Image Include="res\icon.ico">
       <Filter>资源文件</Filter>
     </Image>
     <Image Include="res\Fish1.bmp">
-      <Filter>资源文件</Filter>
+      <Filter>资源文件\Fish</Filter>
     </Image>
     <Image Include="res\Fish2.bmp">
-      <Filter>资源文件</Filter>
-    </Image>
-    <Image Include="res\start_background.bmp">
-      <Filter>资源文件</Filter>
+      <Filter>资源文件\Fish</Filter>
     </Image>
     <Image Include="res\stage_background.bmp">
-      <Filter>资源文件</Filter>
+      <Filter>资源文件\Background</Filter>
+    </Image>
+    <Image Include="res\start_background.bmp">
+      <Filter>资源文件\Background</Filter>
+    </Image>
+    <Image Include="res\START.bmp">
+      <Filter>资源文件\UI</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
