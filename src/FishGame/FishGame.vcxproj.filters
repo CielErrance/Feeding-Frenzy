@@ -49,6 +49,12 @@
     <Image Include="res\START.bmp">
       <Filter>资源文件\UI</Filter>
     </Image>
+    <Image Include="res\Fish3.bmp">
+      <Filter>资源文件\Fish</Filter>
+    </Image>
+    <Image Include="res\title.bmp">
+      <Filter>资源文件\UI</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FishGame.cpp">

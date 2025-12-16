@@ -1,6 +1,6 @@
 ﻿//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ 生成的包含文件。
-// 供 ContraGame.rc 使用
+// 供 FishGame.rc 使用
 //
 #define IDC_MYICON                      2
 #define IDD_CONTRAGAME_DIALOG           102
@@ -21,13 +21,16 @@
 #define IDB_BITMAP3                     168
 #define IDB_BITMAP_BG1                  168
 #define IDB_BITMAP_STAGE_BG             168
+#define IDB_BITMAP_Fish3                169
+#define IDB_BITMAP5                     171
+#define IDB_BITMAP_TITLE                171
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        169
+#define _APS_NEXT_RESOURCE_VALUE        172
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           110

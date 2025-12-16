@@ -22,6 +22,8 @@ HBITMAP bmp_game_bckground; //进入游戏后背景图像资源
 HBITMAP bmp_StartButton;	//开始按钮图像资源
 HBITMAP bmp_Unit_Fish1;		//小鱼1图像资源
 HBITMAP bmp_Unit_Fish2;		//小鱼2图像资源
+HBITMAP bmp_Unit_Fish3;		//小鱼3图像资源 (大鱼)
+HBITMAP bmp_Title;			//游戏标题图像资源
 
 HBITMAP bmp_Start_Background;		//生成的背景图像
 
@@ -46,8 +48,8 @@ int FRAMES_HOLD[] = { 0 };
 int FRAMES_HOLD_COUNT = 1;
 int FRAMES_WALK[] = { 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2 };
 int FRAMES_WALK_COUNT = 16;
-int FRAMES_ATTACK[] = { 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
-int FRAMES_ATTACK_COUNT = 24;
+int FRAMES_ATTACK[] = { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+int FRAMES_ATTACK_COUNT = 20;
 
 
 
@@ -238,6 +240,8 @@ void InitGame(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	bmp_StartButton = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_BITMAP_START));
 	bmp_Unit_Fish1 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_BITMAP_Fish1));
 	bmp_Unit_Fish2 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_BITMAP_Fish2));
+	bmp_Unit_Fish3 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_BITMAP_Fish3));
+	bmp_Title = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_BITMAP_TITLE));
 
 	//添加按钮
 
@@ -433,6 +437,10 @@ Unit* CreateUnit(int side, int type, int x, int y, int health)
 		unit->img = bmp_Unit_Fish2;
 		unit->direction = UNIT_DIRECT_RIGHT;
 	}
+	else if (side == UNIT_SIDE_FISH3) {
+		unit->img = bmp_Unit_Fish3;
+		unit->direction = UNIT_DIRECT_RIGHT; // 默认向右
+	}
 
 	unit->type = type;
 	unit->state = UNIT_STATE_HOLD;
@@ -446,13 +454,18 @@ Unit* CreateUnit(int side, int type, int x, int y, int health)
 		unit->frame_width = FISH_TYPE2_FRAME_WIDTH;
 		unit->frame_height = FISH_TYPE2_FRAME_HEIGHT;
 	}
+	else if (type == UNIT_FISH_TYPE3) {
+		unit->frame_width = FISH_TYPE3_FRAME_WIDTH;
+		unit->frame_height = FISH_TYPE3_FRAME_HEIGHT;
+	}
 	else {
 		// 默认值
 		unit->frame_width = 64;
 		unit->frame_height = 64;
 	}
 
-	unit->frame_row = type;
+	// 所有独立位图资源都从第 0 行开始读取
+	unit->frame_row = 0;
 	unit->frame_column = UNIT_LAST_FRAME * unit->direction;
 
 	unit->frame_sequence = FRAMES_HOLD;
@@ -532,12 +545,11 @@ void InitStage(HWND hWnd, int stageID)
 		switch (stageID) {
 		case STAGE_1:
 		{
-			Unit* player = CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1,
+			Unit* player = CreateUnit(UNIT_SIDE_FISH3, UNIT_FISH_TYPE3,
 				WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 100);
 			player->isPlayer = true;
 			player->size = 1.5f;  // 玩家初始稍大
 			units.push_back(player);
-
 			// 移除初始生成的5条小鱼，改为动态生成
 			break;
 		}
@@ -559,14 +571,19 @@ void UpdateUnits(HWND hWnd)
 	for (int i = 0; i < units.size(); i++) {
 		Unit* unit = units[i];
 
-		//根据单位类型选择行为函数
-		switch (unit->type) {
-		case UNIT_FISH_TYPE1:
-			UnitBehaviour_1(unit);
-			break;
-		case UNIT_FISH_TYPE2:
-			UnitBehaviour_SwimAcross(unit); // 改用横向游动行为
-			break;
+		if (unit->isPlayer) {
+			UnitBehaviour_Player(unit);
+		}
+		else {
+			//根据单位类型选择行为函数
+			switch (unit->type) {
+			case UNIT_FISH_TYPE1:
+				// 如果有 Type 1 的 AI，可以在这里处理
+				break;
+			case UNIT_FISH_TYPE2:
+				UnitBehaviour_SwimAcross(unit); // 改用横向游动行为
+				break;
+			}
 		}
 	}
 
@@ -752,7 +769,7 @@ void UnitBehaviour_SwimAcross(Unit* unit) {
 	}
 }
 
-void UnitBehaviour_1(Unit* unit) {
+void UnitBehaviour_Player(Unit* unit) {
 
 	double dirX = mouseX - unit->x;
 	double dirY = mouseY - unit->y;

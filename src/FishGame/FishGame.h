@@ -43,11 +43,14 @@
 #define FISH_TYPE1_FRAME_HEIGHT		64
 #define FISH_TYPE2_FRAME_WIDTH		64  // 如果需要大鱼，可以在这里修改，例如 128
 #define FISH_TYPE2_FRAME_HEIGHT		64
+#define FISH_TYPE3_FRAME_WIDTH		180
+#define FISH_TYPE3_FRAME_HEIGHT		105
 #define UNIT_LAST_FRAME			11		//单位的动画帧最大值
 
 //不同鱼的定义
 #define UNIT_SIDE_FISH1			10000	//小鱼1
 #define UNIT_SIDE_FISH2			10001	//小鱼2
+#define UNIT_SIDE_FISH3			10002	//小鱼3 (大鱼)
 
 
 
@@ -55,6 +58,7 @@
 //单位类型定义
 #define UNIT_FISH_TYPE1		1		//第一种类型
 #define UNIT_FISH_TYPE2		2		//第二种类型
+#define UNIT_FISH_TYPE3		3		//第三种类型 (大鱼)
 
 //单位状态定义
 #define UNIT_STATE_HOLD			0		//静止
@@ -202,7 +206,7 @@ void UpdateUnits(HWND hWnd);
 
 
 //单位行为函数
-void UnitBehaviour_1(Unit* unit);
+void UnitBehaviour_Player(Unit* unit);
 void UnitBehaviour_2(Unit* unit);
 void UnitBehaviour_SwimAcross(Unit* unit);
 

@@ -157,10 +157,12 @@
   <ItemGroup>
     <Image Include="res\Fish1.bmp" />
     <Image Include="res\Fish2.bmp" />
+    <Image Include="res\Fish3.bmp" />
     <Image Include="res\icon.ico" />
     <Image Include="res\stage_background.bmp" />
     <Image Include="res\START.bmp" />
     <Image Include="res\start_background.bmp" />
+    <Image Include="res\title.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FishGame.cpp" />
