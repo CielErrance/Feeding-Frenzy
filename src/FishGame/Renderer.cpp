@@ -1,20 +1,20 @@
-#include "Renderer.h"
+ï»¿#include "Renderer.h"
 #include "GameState.h"
 #include "GameTypes.h"
 
 using namespace Gdiplus;
 
-// GDI+ È«¾ÖÁîÅÆ
+// GDI+ å…¨å±€ä»¤ç‰Œ
 static ULONG_PTR gdiplusToken = 0;
 
-// ³õÊ¼»¯ GDI+
+// åˆå§‹åŒ– GDI+
 void InitGDIPlus()
 {
 	GdiplusStartupInput gdiplusStartupInput;
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
-// ¹Ø±Õ GDI+
+// å…³é—­ GDI+
 void ShutdownGDIPlus()
 {
 	if (gdiplusToken != 0) {
@@ -23,164 +23,200 @@ void ShutdownGDIPlus()
 	}
 }
 
-// HBITMAP ×ª GDI+ Bitmap
+// HBITMAP è½¬ GDI+ Bitmap
 Gdiplus::Bitmap* HBITMAPToBitmap(HBITMAP hBitmap)
 {
 	if (!hBitmap) return NULL;
-	
-	// »ñÈ¡Î»Í¼ĞÅÏ¢
+
+	// è·å–ä½å›¾ä¿¡æ¯
 	BITMAP bm;
 	GetObject(hBitmap, sizeof(BITMAP), &bm);
-	
-	// ´´½¨¼æÈİDC
+
+	// åˆ›å»ºå…¼å®¹DC
 	HDC hdc = GetDC(NULL);
 	HDC hdcMem = CreateCompatibleDC(hdc);
 	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
-	
-	// ´´½¨ GDI+ Bitmap
+
+	// åˆ›å»º GDI+ Bitmap
 	Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(bm.bmWidth, bm.bmHeight, PixelFormat24bppRGB);
-	
-	// Ëø¶¨Î»Í¼Êı¾İ
+
+	// é”å®šä½å›¾æ•°æ®
 	BitmapData bitmapData;
 	Rect rect(0, 0, bm.bmWidth, bm.bmHeight);
 	bitmap->LockBits(&rect, ImageLockModeWrite, PixelFormat24bppRGB, &bitmapData);
-	
-	// »ñÈ¡Î»Í¼Êı¾İ
+
+	// è·å–ä½å›¾æ•°æ®
 	BITMAPINFO bmi = { 0 };
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmi.bmiHeader.biWidth = bm.bmWidth;
-	bmi.bmiHeader.biHeight = -bm.bmHeight; // ¸ºÊı±íÊ¾´ÓÉÏµ½ÏÂ
+	bmi.bmiHeader.biHeight = -bm.bmHeight; // è´Ÿæ•°è¡¨ç¤ºä»ä¸Šåˆ°ä¸‹
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 24;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	
+
 	GetDIBits(hdcMem, hBitmap, 0, bm.bmHeight, bitmapData.Scan0, &bmi, DIB_RGB_COLORS);
-	
-	// ½âËøÎ»Í¼
+
+	// è§£é”ä½å›¾
 	bitmap->UnlockBits(&bitmapData);
-	
-	// ÇåÀí
+
+	// æ¸…ç†
 	SelectObject(hdcMem, hOldBitmap);
 	DeleteDC(hdcMem);
 	ReleaseDC(NULL, hdc);
-	
+
 	return bitmap;
 }
 
-// »æÖÆÍ¼Ïñ£¨²»Í¸Ã÷£©
-void DrawImage(Gdiplus::Graphics& graphics, Gdiplus::Image* image, 
-      int x, int y, int width, int height)
+// ç»˜åˆ¶å›¾åƒï¼ˆä¸é€æ˜ï¼‰
+void DrawImage(Gdiplus::Graphics& graphics, Gdiplus::Image* image,
+	int x, int y, int width, int height)
 {
 	if (!image) return;
-	
+
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
 	graphics.DrawImage(image, x, y, width, height);
 }
 
-// »æÖÆÍ¼ÏñÇøÓò£¨²»Í¸Ã÷£©
+// ç»˜åˆ¶å›¾åƒåŒºåŸŸï¼ˆä¸é€æ˜ï¼‰
 void DrawImageRegion(Gdiplus::Graphics& graphics, Gdiplus::Image* image,
-         int destX, int destY, int destW, int destH,
-      int srcX, int srcY, int srcW, int srcH)
+	int destX, int destY, int destW, int destH,
+	int srcX, int srcY, int srcW, int srcH)
 {
 	if (!image) return;
-	
+
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-	
-	// »æÖÆÖ¸¶¨ÇøÓò
+
+	// ç»˜åˆ¶æŒ‡å®šåŒºåŸŸ
 	graphics.DrawImage(image,
 		Rect(destX, destY, destW, destH),
 		srcX, srcY, srcW, srcH,
 		UnitPixel);
 }
 
-// ĞÂÔö£º´øÑÕÉ«¼üÍ¸Ã÷µÄ»æÖÆº¯Êı£¨ÍêÕûÍ¼Ïñ£©
+// æ–°å¢ï¼šå¸¦é¢œè‰²é”®é€æ˜çš„ç»˜åˆ¶å‡½æ•°ï¼ˆå®Œæ•´å›¾åƒï¼‰
 void DrawImageWithColorKey(Gdiplus::Graphics& graphics, Gdiplus::Image* image,
-      int x, int y, int width, int height,
-      Gdiplus::Color transparentColor)
+	int x, int y, int width, int height,
+	Gdiplus::Color transparentColor)
 {
 	if (!image) return;
-	
-	// ´´½¨ ImageAttributes ÉèÖÃÑÕÉ«¼ü
+
+	// åˆ›å»º ImageAttributes è®¾ç½®é¢œè‰²é”®
 	ImageAttributes imageAttr;
 	imageAttr.SetColorKey(transparentColor, transparentColor);
-	
+
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-	
-	// Ê¹ÓÃ ImageAttributes »æÖÆ
+
+	// ä½¿ç”¨ ImageAttributes ç»˜åˆ¶
 	graphics.DrawImage(image,
 		Rect(x, y, width, height),
 		0, 0, image->GetWidth(), image->GetHeight(),
 		UnitPixel, &imageAttr);
 }
 
-// ĞÂÔö£º´øÑÕÉ«¼üÍ¸Ã÷µÄÇøÓò»æÖÆ£¨ÓÃÓÚ¾«ÁéÍ¼£©
+// æ–°å¢ï¼šå¸¦é¢œè‰²é”®é€æ˜çš„åŒºåŸŸç»˜åˆ¶ï¼ˆç”¨äºç²¾çµå›¾ï¼‰
 void DrawImageRegionWithColorKey(Gdiplus::Graphics& graphics, Gdiplus::Image* image,
-       int destX, int destY, int destW, int destH,
-            int srcX, int srcY, int srcW, int srcH,
-    Gdiplus::Color transparentColor)
+	int destX, int destY, int destW, int destH,
+	int srcX, int srcY, int srcW, int srcH,
+	Gdiplus::Color transparentColor)
 {
 	if (!image) return;
-	
-	// ´´½¨ ImageAttributes ÉèÖÃÑÕÉ«¼ü
+
+	// åˆ›å»º ImageAttributes è®¾ç½®é¢œè‰²é”®
 	ImageAttributes imageAttr;
 	imageAttr.SetColorKey(transparentColor, transparentColor);
-	
+
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-	
-	// Ê¹ÓÃ ImageAttributes »æÖÆÖ¸¶¨ÇøÓò
+
+	// ä½¿ç”¨ ImageAttributes ç»˜åˆ¶æŒ‡å®šåŒºåŸŸ
 	graphics.DrawImage(image,
 		Rect(destX, destY, destW, destH),
 		srcX, srcY, srcW, srcH,
 		UnitPixel, &imageAttr);
 }
 
-// Ö÷»æÖÆº¯Êı
+// æ–°å¢ï¼šç°åº¦ç»˜åˆ¶å‡½æ•°ï¼ˆç”¨äºæœªè§£é”çš„æŒ‰é’®ï¼‰
+void DrawImageGrayscale(Gdiplus::Graphics& graphics, Gdiplus::Image* image,
+	int x, int y, int width, int height,
+	BYTE alpha)
+{
+	if (!image) return;
+
+	// åˆ›å»ºç°åº¦ ColorMatrix
+	// ç°åº¦è½¬æ¢å…¬å¼ï¼šGray = 0.299*R + 0.587*G + 0.114*B
+	ColorMatrix grayMatrix = {
+		0.299f, 0.299f, 0.299f, 0.0f, 0.0f,   // Red é€šé“
+		0.587f, 0.587f, 0.587f, 0.0f, 0.0f,   // Green é€šé“
+		0.114f, 0.114f, 0.114f, 0.0f, 0.0f,   // Blue é€šé“
+		0.0f,   0.0f,   0.0f,   (float)alpha / 255.0f, 0.0f,   // Alpha é€šé“
+		0.0f,   0.0f,   0.0f,   0.0f, 1.0f    // åç§»
+	};
+
+	ImageAttributes imageAttr;
+	imageAttr.SetColorMatrix(&grayMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
+
+	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+
+	// ä½¿ç”¨ç°åº¦ ColorMatrix ç»˜åˆ¶
+	graphics.DrawImage(image,
+		Rect(x, y, width, height),
+		0, 0, image->GetWidth(), image->GetHeight(),
+		UnitPixel, &imageAttr);
+}
+
+// ä¸»ç»˜åˆ¶å‡½æ•°
 void Paint(HWND hWnd)
 {
 	PAINTSTRUCT ps;
 	HDC hdc_window = BeginPaint(hWnd, &ps);
-	
-	// ´´½¨ÄÚ´æÎ»Í¼ÓÃÓÚË«»º³å
+
+	// åˆ›å»ºå†…å­˜ä½å›¾ç”¨äºåŒç¼“å†²
 	HDC hdc_memBuffer = CreateCompatibleDC(hdc_window);
 	HBITMAP blankBmp = CreateCompatibleBitmap(hdc_window, WINDOW_WIDTH, WINDOW_HEIGHT);
 	HBITMAP hOldBmp = (HBITMAP)SelectObject(hdc_memBuffer, blankBmp);
-	
-	// ´´½¨ GDI+ Graphics ¶ÔÏó
+
+	// åˆ›å»º GDI+ Graphics å¯¹è±¡
 	Graphics graphics(hdc_memBuffer);
 	graphics.SetSmoothingMode(SmoothingModeHighQuality);
 	graphics.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-	
-	// ¶¨ÒåÍ¸Ã÷É«£¨°×É«£©
+
+	// å®šä¹‰é€æ˜è‰²ï¼ˆç™½è‰²ï¼‰
 	Color transparentWhite(255, 255, 255);
-	
-	// ¸ù¾İ³¡¾°»æÖÆ
+
+	// æ ¹æ®åœºæ™¯ç»˜åˆ¶
 	if (currentStage->stageID == STAGE_STARTMENU) {
-		// »æÖÆ¿ªÊ¼²Ëµ¥±³¾°£¨²»ĞèÒªÍ¸Ã÷£©
+		// ç»˜åˆ¶å¼€å§‹èœå•èƒŒæ™¯ï¼ˆä¸éœ€è¦é€æ˜ï¼‰
 		if (gdip_Start_Background) {
 			DrawImage(graphics, gdip_Start_Background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 		}
-		
-		// »æÖÆ±êÌâ£¨PNG ×Ô´ø Alpha Í¨µÀ£©
+
+		// ç»˜åˆ¶æ ‡é¢˜ï¼ˆPNG è‡ªå¸¦ Alpha é€šé“ï¼‰
 		if (gdip_Title) {
 			int titleWidth = gdip_Title->GetWidth();
 			int titleHeight = gdip_Title->GetHeight();
 			int titleX = (WINDOW_WIDTH - titleWidth) / 2;
-			int titleY = 50;  // ¾àÀë¶¥²¿ 50 ÏñËØ
-			
+			int titleY = 50;  // è·ç¦»é¡¶éƒ¨ 50 åƒç´ 
+
 			DrawImage(graphics, gdip_Title, titleX, titleY, titleWidth, titleHeight);
 		}
 	}
+	else if (currentStage->stageID == STAGE_LEVELSELECT) {
+		// æ–°å¢ï¼šç»˜åˆ¶å…³å¡é€‰æ‹©åœºæ™¯
+		if (gdip_Start_Background) {
+			DrawImage(graphics, gdip_Start_Background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+		}
+
+	}
 	else if (currentStage->stageID >= STAGE_1 && currentStage->stageID <= STAGE_1) {
-		// »æÖÆÓÎÏ·±³¾°£¨²»ĞèÒªÍ¸Ã÷£©
+		// ç»˜åˆ¶æ¸¸æˆèƒŒæ™¯ï¼ˆä¸éœ€è¦é€æ˜ï¼‰
 		if (gdip_Stage_Background) {
 			DrawImage(graphics, gdip_Stage_Background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 		}
-		
-		// »æÖÆËùÓĞµ¥Î»£¨Ê¹ÓÃÑÕÉ«¼üÍ¸Ã÷£©
+
+		// ç»˜åˆ¶æ‰€æœ‰å•ä½ï¼ˆä½¿ç”¨é¢œè‰²é”®é€æ˜ï¼‰
 		for (int i = 0; i < units.size(); i++) {
-			::Unit* unit = units[i];  // Ê¹ÓÃÈ«¾ÖÃüÃû¿Õ¼äµÄ Unit
-			
-			// ¸ù¾İµ¥Î»ÀàĞÍÑ¡Ôñ¶ÔÓ¦µÄ GDI+ Bitmap
+			::Unit* unit = units[i];  // ä½¿ç”¨å…¨å±€å‘½åç©ºé—´çš„ Unit
+
+			// æ ¹æ®å•ä½ç±»å‹é€‰æ‹©å¯¹åº”çš„ GDI+ Bitmap
 			Gdiplus::Bitmap* unitImage = NULL;
 			if (unit->side == UNIT_SIDE_FISH1 || unit->type == UNIT_FISH_TYPE1) {
 				unitImage = gdip_Unit_Fish1;
@@ -191,97 +227,114 @@ void Paint(HWND hWnd)
 			else if (unit->side == UNIT_SIDE_FISH3 || unit->type == UNIT_FISH_TYPE3) {
 				unitImage = gdip_Unit_Fish3;
 			}
-			
+
 			if (unitImage) {
 				int drawWidth = (int)(unit->frame_width * unit->size);
 				int drawHeight = (int)(unit->frame_height * unit->size);
-				
-				// Ê¹ÓÃÑÕÉ«¼üÍ¸Ã÷»æÖÆ¾«ÁéÍ¼µÄÖ¸¶¨Ö¡
+
+				// ä½¿ç”¨é¢œè‰²é”®é€æ˜ç»˜åˆ¶ç²¾çµå›¾çš„æŒ‡å®šå¸§
 				DrawImageRegionWithColorKey(graphics, unitImage,
 					unit->x - drawWidth / 2, unit->y - drawHeight / 2, drawWidth, drawHeight,
 					unit->frame_width * unit->frame_column,
 					unit->frame_height * unit->frame_row,
 					unit->frame_width, unit->frame_height,
-					transparentWhite);  // °×É«Í¸Ã÷
+					transparentWhite);  // ç™½è‰²é€æ˜
 			}
 		}
 	}
-	
-	// »æÖÆ°´Å¥£¨PNG ×Ô´ø Alpha Í¨µÀ£¬Ö±½Ó»æÖÆ£©
+
+	// ç»˜åˆ¶æŒ‰é’®ï¼ˆPNG è‡ªå¸¦ Alpha é€šé“ï¼Œç›´æ¥ç»˜åˆ¶ï¼‰
 	for (int i = 0; i < buttons.size(); i++) {
 		Button* button = buttons[i];
 		if (button->visible) {
-			// ¸ù¾İ°´Å¥IDÑ¡Ôñ¶ÔÓ¦µÄÍ¼Ïñ
+			// æ ¹æ®æŒ‰é’®IDé€‰æ‹©å¯¹åº”çš„å›¾åƒ
 			Gdiplus::Bitmap* buttonImage = NULL;
-			
+
 			switch (button->buttonID) {
 			case BUTTON_STARTGAME:
-				// Ê¹ÓÃĞÂµÄ PNG °´Å¥£¨new_game.png£©
+				// ä½¿ç”¨æ–°çš„ PNG æŒ‰é’®ï¼ˆnew_game.pngï¼‰
 				buttonImage = gdip_NewGameButton;
 				break;
 			case BUTTON_QUITGAME:
-				// Ê¹ÓÃÍË³ö PNG °´Å¥£¨quit_game.png£©
+				// ä½¿ç”¨é€€å‡º PNG æŒ‰é’®ï¼ˆquit_game.pngï¼‰
 				buttonImage = gdip_QuitGameButton;
 				break;
+			case BUTTON_LEVEL1:
+				buttonImage = gdip_Level1Button;
+				break;
+			case BUTTON_LEVEL2:
+				buttonImage = gdip_Level2Button;
+				break;
+			case BUTTON_LEVEL3:
+				buttonImage = gdip_Level3Button;
+				break;
 			default:
-				// »ØÍËµ½¾ÉµÄ BMP °´Å¥
+				// å›é€€åˆ°æ—§çš„ BMP æŒ‰é’®
 				buttonImage = gdip_StartButton;
 				break;
 			}
-			
+
 			if (buttonImage) {
-				// PNG Í¼Æ¬×Ô´øÍ¸Ã÷Í¨µÀ£¬Ö±½Ó»æÖÆ£¨²»Ê¹ÓÃÑÕÉ«¼ü£©
-				DrawImage(graphics, buttonImage, 
-					button->x, button->y, button->width, button->height);
+				// æ ¹æ®é”å®šçŠ¶æ€é€‰æ‹©ç»˜åˆ¶æ–¹å¼
+				if (button->locked) {
+					// é”å®šçŠ¶æ€ï¼šç»˜åˆ¶ç°åº¦ç‰ˆæœ¬
+					DrawImageGrayscale(graphics, buttonImage,
+						button->x, button->y, button->width, button->height, 150);  // 150 = çº¦60%é€æ˜åº¦
+				}
+				else {
+					// æ­£å¸¸çŠ¶æ€ï¼šPNG å›¾ç‰‡è‡ªå¸¦é€æ˜é€šé“ï¼Œç›´æ¥ç»˜åˆ¶
+					DrawImage(graphics, buttonImage,
+						button->x, button->y, button->width, button->height);
+				}
 			}
 		}
 	}
-	
-	// »æÖÆ½ø¶ÈÌõ£¨Ê¹ÓÃ GDI+ Í¼ĞÎ£©
+
+	// ç»˜åˆ¶è¿›åº¦æ¡ï¼ˆä½¿ç”¨ GDI+ å›¾å½¢ï¼‰
 	if (currentStage->stageID == STAGE_1) {
 		int barWidth = 400;
 		int barHeight = 20;
 		int barX = (WINDOW_WIDTH - barWidth) / 2;
 		int barY = WINDOW_HEIGHT - 120;
-		
-		// »æÖÆ±ß¿ò
+
+		// ç»˜åˆ¶è¾¹æ¡†
 		Pen borderPen(Color(255, 0, 0, 0), 2);
 		graphics.DrawRectangle(&borderPen, barX, barY, barWidth, barHeight);
-		
-		// »æÖÆÌî³ä
+
+		// ç»˜åˆ¶å¡«å……
 		int filledWidth = (barWidth * progressValue) / 100;
 		SolidBrush fillBrush(Color(255, 0, 200, 0));
 		graphics.FillRectangle(&fillBrush, barX + 1, barY + 1, filledWidth - 2, barHeight - 2);
-		
-		// »æÖÆÎÄ×Ö
+
+		// ç»˜åˆ¶æ–‡å­—
 		wchar_t text[32];
-		wsprintf(text, L"µ±Ç°½ø¶È:%d%%", progressValue);
-		
-		FontFamily fontFamily(L"Î¢ÈíÑÅºÚ");
+		wsprintf(text, L"å½“å‰è¿›åº¦:%d%%", progressValue);
+
+		FontFamily fontFamily(L"å¾®è½¯é›…é»‘");
 		Font font(&fontFamily, 14, FontStyleRegular, UnitPixel);
 		SolidBrush textBrush(Color(255, 255, 255, 255));
 		PointF textPos((REAL)(barX + barWidth / 2 - 40), (REAL)(barY - 25));
-		
+
 		graphics.DrawString(text, -1, &font, textPos, &textBrush);
 	}
-	
-	// ¸´ÖÆµ½´°¿Ú
+
+	// å¤åˆ¶åˆ°çª—å£
 	BitBlt(hdc_window, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_memBuffer, 0, 0, SRCCOPY);
-	
-	// ÇåÀí
+
+	// æ¸…ç†
 	SelectObject(hdc_memBuffer, hOldBmp);
 	DeleteObject(blankBmp);
 	DeleteDC(hdc_memBuffer);
 	EndPaint(hWnd, &ps);
 }
 
-// ³õÊ¼»¯±³¾°£¨´Ó HBITMAP ×ª»»£©
+// åˆå§‹åŒ–èƒŒæ™¯ï¼ˆä» HBITMAP è½¬æ¢ï¼‰
 Gdiplus::Bitmap* InitBackGround(HWND hWnd, HBITMAP bmp_src)
 {
 	if (!bmp_src) return NULL;
-	
-	// Ö±½Ó×ª»»Îª GDI+ Bitmap
+
+	// ç›´æ¥è½¬æ¢ä¸º GDI+ Bitmap
 	Gdiplus::Bitmap* bitmap = HBITMAPToBitmap(bmp_src);
-	
+
 	return bitmap;
 }

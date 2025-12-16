@@ -13,6 +13,7 @@ Button* CreateButton(int buttonID, HBITMAP img, int width, int height, int x, in
 	button->x = x;
 	button->y = y;
 	button->visible = false;
+	button->locked = false;  // 默认不锁定
 	return button;
 }
 

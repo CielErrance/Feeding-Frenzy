@@ -24,6 +24,11 @@ Gdiplus::Bitmap* gdip_QuitGameButton = NULL;
 // PNG 标题
 Gdiplus::Bitmap* gdip_Title = NULL;
 
+// 关卡选择按钮
+Gdiplus::Bitmap* gdip_Level1Button = NULL;
+Gdiplus::Bitmap* gdip_Level2Button = NULL;
+Gdiplus::Bitmap* gdip_Level3Button = NULL;
+
 // 全局游戏状态初始化
 Stage* currentStage = NULL;
 std::vector<Unit*> units;

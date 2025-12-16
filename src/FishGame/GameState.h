@@ -18,7 +18,8 @@ namespace Gdiplus {
 
 // 场景ID
 #define STAGE_STARTMENU			0
-#define STAGE_1					1
+#define STAGE_LEVELSELECT		1  // 新增：关卡选择
+#define STAGE_1					2  // 修改：原来是1，现在是2
 
 // 各类鱼的精灵帧尺寸配置
 #define FISH_TYPE1_FRAME_WIDTH		64
@@ -63,6 +64,11 @@ namespace Gdiplus {
 #define BUTTON_QUITGAME_WIDTH		212
 #define BUTTON_QUITGAME_HEIGHT		76
 
+// 新增：关卡按钮
+#define BUTTON_LEVEL1				1003
+#define BUTTON_LEVEL2				1004
+#define BUTTON_LEVEL3				1005
+
 // 计时器配置
 #define TIMER_GAMETIMER				1
 #define TIMER_GAMETIMER_ELAPSE		30
@@ -97,6 +103,11 @@ extern Gdiplus::Bitmap* gdip_QuitGameButton;
 
 // 新增：PNG 标题
 extern Gdiplus::Bitmap* gdip_Title;
+
+// 新增：关卡选择按钮
+extern Gdiplus::Bitmap* gdip_Level1Button;
+extern Gdiplus::Bitmap* gdip_Level2Button;
+extern Gdiplus::Bitmap* gdip_Level3Button;
 
 // 全局游戏状态
 extern Stage* currentStage;

@@ -32,7 +32,12 @@ void InitGame(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	gdip_QuitGameButton = new Gdiplus::Bitmap(L"res/quit_game.png");
 
 	// 加载 PNG 标题
-	gdip_Title = new Gdiplus::Bitmap(L"res/title1.png");
+	gdip_Title = new Gdiplus::Bitmap(L"res/title.png");
+	
+	// 加载关卡选择按钮
+	gdip_Level1Button = new Gdiplus::Bitmap(L"res/level1.png");
+	gdip_Level2Button = new Gdiplus::Bitmap(L"res/level2.png");
+	gdip_Level3Button = new Gdiplus::Bitmap(L"res/level3.png");
 
 	// 检查 PNG 是否加载成功
 	if (gdip_NewGameButton && gdip_NewGameButton->GetLastStatus() != Gdiplus::Ok) {
@@ -46,6 +51,18 @@ void InitGame(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	if (gdip_Title && gdip_Title->GetLastStatus() != Gdiplus::Ok) {
 		delete gdip_Title;
 		gdip_Title = NULL;
+	}
+	if (gdip_Level1Button && gdip_Level1Button->GetLastStatus() != Gdiplus::Ok) {
+		delete gdip_Level1Button;
+		gdip_Level1Button = NULL;
+	}
+	if (gdip_Level2Button && gdip_Level2Button->GetLastStatus() != Gdiplus::Ok) {
+		delete gdip_Level2Button;
+		gdip_Level2Button = NULL;
+	}
+	if (gdip_Level3Button && gdip_Level3Button->GetLastStatus() != Gdiplus::Ok) {
+		delete gdip_Level3Button;
+		gdip_Level3Button = NULL;
 	}
 
 	// 添加新游戏按钮（使用 PNG 的原始尺寸）
@@ -69,6 +86,39 @@ void InitGame(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	Button* quitButton = CreateButton(BUTTON_QUITGAME, NULL, quitGameWidth, quitGameHeight,
 		(WINDOW_WIDTH - quitGameWidth) / 2, (WINDOW_HEIGHT - quitGameHeight) / 2 + 200);
 	buttons.push_back(quitButton);
+	
+	// 添加关卡选择按钮
+	int level1Width = 200;
+	int level1Height = 200;
+	if (gdip_Level1Button) {
+		level1Width = gdip_Level1Button->GetWidth();
+		level1Height = gdip_Level1Button->GetHeight();
+	}
+	Button* level1Button = CreateButton(BUTTON_LEVEL1, NULL, level1Width, level1Height,
+		WINDOW_WIDTH / 2 - level1Width * 1.5 - 40, WINDOW_HEIGHT / 2 - level1Height / 2);
+	buttons.push_back(level1Button);
+	
+	int level2Width = 200;
+	int level2Height = 200;
+	if (gdip_Level2Button) {
+		level2Width = gdip_Level2Button->GetWidth();
+		level2Height = gdip_Level2Button->GetHeight();
+	}
+	Button* level2Button = CreateButton(BUTTON_LEVEL2, NULL, level2Width, level2Height,
+		WINDOW_WIDTH / 2 - level2Width / 2, WINDOW_HEIGHT / 2 - level2Height / 2);
+	level2Button->locked = true;  // 默认锁定
+	buttons.push_back(level2Button);
+	
+	int level3Width = 200;
+	int level3Height = 200;
+	if (gdip_Level3Button) {
+		level3Width = gdip_Level3Button->GetWidth();
+		level3Height = gdip_Level3Button->GetHeight();
+	}
+	Button* level3Button = CreateButton(BUTTON_LEVEL3, NULL, level3Width, level3Height,
+		WINDOW_WIDTH / 2 + level3Width * 0.5 + 40, WINDOW_HEIGHT / 2 - level3Height / 2);
+	level3Button->locked = true;  // 默认锁定
+	buttons.push_back(level3Button);
 
 	// 初始化开始场景
 	InitStage(hWnd, STAGE_STARTMENU);
@@ -89,6 +139,9 @@ void CleanupResources()
 	if (gdip_NewGameButton) { delete gdip_NewGameButton; gdip_NewGameButton = NULL; }
 	if (gdip_QuitGameButton) { delete gdip_QuitGameButton; gdip_QuitGameButton = NULL; }
 	if (gdip_Title) { delete gdip_Title; gdip_Title = NULL; }
+	if (gdip_Level1Button) { delete gdip_Level1Button; gdip_Level1Button = NULL; }
+	if (gdip_Level2Button) { delete gdip_Level2Button; gdip_Level2Button = NULL; }
+	if (gdip_Level3Button) { delete gdip_Level3Button; gdip_Level3Button = NULL; }
 
 	// 清理 HBITMAP
 	if (bmp_start_bckground) { DeleteObject(bmp_start_bckground); bmp_start_bckground = NULL; }

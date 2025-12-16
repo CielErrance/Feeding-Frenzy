@@ -25,6 +25,7 @@ struct Button
 	int y;
 	int width;
 	int height;
+	bool locked;  // 新增：按钮是否被锁定（未解锁）
 };
 
 // 单位结构体

@@ -24,6 +24,25 @@ void InitStage(HWND hWnd, int stageID)
 			}
 		}
 	}
+	else if (stageID == STAGE_LEVELSELECT) {
+		// 新增：关卡选择场景
+		currentStage->bg = gdip_Start_Background;  // 使用相同背景
+		currentStage->timeCountDown = 0;
+		currentStage->timerOn = false;
+
+		for (int i = 0; i < buttons.size(); i++) {
+			Button* button = buttons[i];
+			// 显示关卡选择按钮
+			if (button->buttonID == BUTTON_LEVEL1 || 
+			    button->buttonID == BUTTON_LEVEL2 || 
+			    button->buttonID == BUTTON_LEVEL3) {
+				button->visible = true;
+			}
+			else {
+				button->visible = false;
+			}
+		}
+	}
 	else if (stageID >= STAGE_1 && stageID <= STAGE_1) {
 		currentStage->stageID = stageID;
 		currentStage->bg = gdip_Stage_Background;  // 使用 GDI+ Bitmap
