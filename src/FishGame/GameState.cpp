@@ -21,6 +21,9 @@ Gdiplus::Bitmap* gdip_Unit_Fish3 = NULL;
 Gdiplus::Bitmap* gdip_NewGameButton = NULL;
 Gdiplus::Bitmap* gdip_QuitGameButton = NULL;
 
+// PNG 标题
+Gdiplus::Bitmap* gdip_Title = NULL;
+
 // 全局游戏状态初始化
 Stage* currentStage = NULL;
 std::vector<Unit*> units;

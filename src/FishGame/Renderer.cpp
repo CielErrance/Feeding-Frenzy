@@ -159,6 +159,16 @@ void Paint(HWND hWnd)
 		if (gdip_Start_Background) {
 			DrawImage(graphics, gdip_Start_Background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 		}
+		
+		// 绘制标题（PNG 自带 Alpha 通道）
+		if (gdip_Title) {
+			int titleWidth = gdip_Title->GetWidth();
+			int titleHeight = gdip_Title->GetHeight();
+			int titleX = (WINDOW_WIDTH - titleWidth) / 2;
+			int titleY = 50;  // 距离顶部 50 像素
+			
+			DrawImage(graphics, gdip_Title, titleX, titleY, titleWidth, titleHeight);
+		}
 	}
 	else if (currentStage->stageID >= STAGE_1 && currentStage->stageID <= STAGE_1) {
 		// 绘制游戏背景（不需要透明）

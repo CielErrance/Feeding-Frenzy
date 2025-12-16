@@ -38,7 +38,7 @@ void InitStage(HWND hWnd, int stageID)
 		switch (stageID) {
 		case STAGE_1:
 		{
-			Unit* player = CreateUnit(UNIT_SIDE_FISH3, UNIT_FISH_TYPE3,
+			Unit* player = CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1,
 				WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 100);
 			player->isPlayer = true;
 			player->size = 1.5f;

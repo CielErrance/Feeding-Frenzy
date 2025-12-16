@@ -95,6 +95,9 @@ extern Gdiplus::Bitmap* gdip_Unit_Fish3;
 extern Gdiplus::Bitmap* gdip_NewGameButton;
 extern Gdiplus::Bitmap* gdip_QuitGameButton;
 
+// 新增：PNG 标题
+extern Gdiplus::Bitmap* gdip_Title;
+
 // 全局游戏状态
 extern Stage* currentStage;
 extern std::vector<Unit*> units;
