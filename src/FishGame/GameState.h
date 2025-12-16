@@ -3,6 +3,12 @@
 #include <vector>
 #include "GameTypes.h"
 
+// GDI+ 前向声明
+namespace Gdiplus {
+	class Image;
+	class Bitmap;
+}
+
 #pragma region 游戏常量定义
 
 // 窗口配置
@@ -53,6 +59,10 @@
 #define BUTTON_STARTGAME_WIDTH		212
 #define BUTTON_STARTGAME_HEIGHT		76
 
+#define BUTTON_QUITGAME				1002
+#define BUTTON_QUITGAME_WIDTH		212
+#define BUTTON_QUITGAME_HEIGHT		76
+
 // 计时器配置
 #define TIMER_GAMETIMER				1
 #define TIMER_GAMETIMER_ELAPSE		30
@@ -64,7 +74,7 @@
 
 #pragma region 全局状态声明
 
-// 全局资源
+// 全局资源 - 原始 HBITMAP（用于加载）
 extern HBITMAP bmp_start_bckground;
 extern HBITMAP bmp_game_bckground;
 extern HBITMAP bmp_StartButton;
@@ -72,8 +82,18 @@ extern HBITMAP bmp_Unit_Fish1;
 extern HBITMAP bmp_Unit_Fish2;
 extern HBITMAP bmp_Unit_Fish3;
 extern HBITMAP bmp_Title;
-extern HBITMAP bmp_Start_Background;
-extern HBITMAP bmp_Stage_Background;
+
+// 全局资源 - GDI+ Bitmap（用于绘制）
+extern Gdiplus::Bitmap* gdip_Start_Background;
+extern Gdiplus::Bitmap* gdip_Stage_Background;
+extern Gdiplus::Bitmap* gdip_StartButton;
+extern Gdiplus::Bitmap* gdip_Unit_Fish1;
+extern Gdiplus::Bitmap* gdip_Unit_Fish2;
+extern Gdiplus::Bitmap* gdip_Unit_Fish3;
+
+// 新增：PNG 按钮
+extern Gdiplus::Bitmap* gdip_NewGameButton;
+extern Gdiplus::Bitmap* gdip_QuitGameButton;
 
 // 全局游戏状态
 extern Stage* currentStage;

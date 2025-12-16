@@ -1,6 +1,6 @@
 #include "GameState.h"
 
-// 全局资源初始化
+// 全局资源初始化 - 原始 HBITMAP
 HBITMAP bmp_start_bckground = NULL;
 HBITMAP bmp_game_bckground = NULL;
 HBITMAP bmp_StartButton = NULL;
@@ -8,8 +8,18 @@ HBITMAP bmp_Unit_Fish1 = NULL;
 HBITMAP bmp_Unit_Fish2 = NULL;
 HBITMAP bmp_Unit_Fish3 = NULL;
 HBITMAP bmp_Title = NULL;
-HBITMAP bmp_Start_Background = NULL;
-HBITMAP bmp_Stage_Background = NULL;
+
+// 全局资源初始化 - GDI+ Bitmap
+Gdiplus::Bitmap* gdip_Start_Background = NULL;
+Gdiplus::Bitmap* gdip_Stage_Background = NULL;
+Gdiplus::Bitmap* gdip_StartButton = NULL;
+Gdiplus::Bitmap* gdip_Unit_Fish1 = NULL;
+Gdiplus::Bitmap* gdip_Unit_Fish2 = NULL;
+Gdiplus::Bitmap* gdip_Unit_Fish3 = NULL;
+
+// PNG 按钮
+Gdiplus::Bitmap* gdip_NewGameButton = NULL;
+Gdiplus::Bitmap* gdip_QuitGameButton = NULL;
 
 // 全局游戏状态初始化
 Stage* currentStage = NULL;

@@ -1,11 +1,16 @@
 #pragma once
 #include <windows.h>
 
+// GDI+ 前向声明
+namespace Gdiplus {
+	class Bitmap;
+}
+
 // 场景结构体
 struct Stage
 {
 	int stageID;
-	HBITMAP bg;
+	Gdiplus::Bitmap* bg;  // 使用 GDI+ Bitmap
 	int timeCountDown;
 	bool timerOn;
 };
@@ -15,7 +20,7 @@ struct Button
 {
 	int buttonID;
 	bool visible;
-	HBITMAP img;
+	HBITMAP img;  // 保留 HBITMAP 用于兼容性
 	int x;
 	int y;
 	int width;
@@ -25,7 +30,7 @@ struct Button
 // 单位结构体
 struct Unit
 {
-	HBITMAP img;
+	HBITMAP img;  // 保留 HBITMAP 用于兼容性
 	
 	int frame_row;
 	int frame_column;

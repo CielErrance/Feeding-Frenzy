@@ -9,13 +9,14 @@ void InitStage(HWND hWnd, int stageID)
 	currentStage->stageID = stageID;
 
 	if (stageID == STAGE_STARTMENU) {
-		currentStage->bg = bmp_Start_Background;
+		currentStage->bg = gdip_Start_Background;  // 使用 GDI+ Bitmap
 		currentStage->timeCountDown = 0;
 		currentStage->timerOn = false;
 
 		for (int i = 0; i < buttons.size(); i++) {
 			Button* button = buttons[i];
-			if (button->buttonID == BUTTON_STARTGAME) {
+			// 在开始菜单显示新游戏和退出按钮
+			if (button->buttonID == BUTTON_STARTGAME || button->buttonID == BUTTON_QUITGAME) {
 				button->visible = true;
 			}
 			else {
@@ -25,7 +26,7 @@ void InitStage(HWND hWnd, int stageID)
 	}
 	else if (stageID >= STAGE_1 && stageID <= STAGE_1) {
 		currentStage->stageID = stageID;
-		currentStage->bg = bmp_Stage_Background;
+		currentStage->bg = gdip_Stage_Background;  // 使用 GDI+ Bitmap
 		currentStage->timeCountDown = 10000;
 		currentStage->timerOn = true;
 
@@ -37,7 +38,7 @@ void InitStage(HWND hWnd, int stageID)
 		switch (stageID) {
 		case STAGE_1:
 		{
-			Unit* player = CreateUnit(UNIT_SIDE_FISH1, UNIT_FISH_TYPE1,
+			Unit* player = CreateUnit(UNIT_SIDE_FISH3, UNIT_FISH_TYPE3,
 				WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 100);
 			player->isPlayer = true;
 			player->size = 1.5f;

@@ -107,6 +107,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Paint(hWnd);
 		break;
 	case WM_DESTROY:
+		CleanupResources();  // 清理所有资源
+		ShutdownGDIPlus();   // 关闭 GDI+
 		PostQuitMessage(0);
 		break;
 	default:

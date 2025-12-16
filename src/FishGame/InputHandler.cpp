@@ -66,6 +66,10 @@ void LButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				case BUTTON_STARTGAME:
 					InitStage(hWnd, STAGE_1);
 					break;
+				case BUTTON_QUITGAME:
+					// ÍË³öÓÎÏ·
+					PostMessage(hWnd, WM_CLOSE, 0, 0);
+					break;
 				}
 			}
 		}
