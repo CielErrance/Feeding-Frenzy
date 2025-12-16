@@ -151,8 +151,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="EntityManager.h" />
     <ClInclude Include="FishGame.h" />
+    <ClInclude Include="GameCore.h" />
+    <ClInclude Include="GameState.h" />
+    <ClInclude Include="GameTypes.h" />
+    <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="StageManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Fish1.bmp" />
@@ -162,13 +169,21 @@
     <Image Include="res\stage_background.bmp" />
     <Image Include="res\START.bmp" />
     <Image Include="res\start_background.bmp" />
-    <Image Include="res\title.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="FishGame.cpp" />
+    <ClCompile Include="GameCore.cpp" />
+    <ClCompile Include="GameState.cpp" />
+    <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="StageManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FishGame.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="重构报告.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

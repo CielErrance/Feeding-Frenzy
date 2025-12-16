@@ -23,7 +23,6 @@
 #define IDB_BITMAP_STAGE_BG             168
 #define IDB_BITMAP_Fish3                169
 #define IDB_BITMAP5                     171
-#define IDB_BITMAP_TITLE                171
 
 // Next default values for new objects
 // 
