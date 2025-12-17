@@ -4,9 +4,19 @@
 
 void InitStage(HWND hWnd, int stageID)
 {
+	// 清理旧的游戏状态
 	if (currentStage != NULL) delete currentStage;
 	currentStage = new Stage();
 	currentStage->stageID = stageID;
+
+	// 清理所有旧的 units（无论切换到哪个场景）
+	for (int i = 0; i < units.size(); i++) {
+		delete units[i];
+	}
+	units.clear();
+
+	// 重置进度值
+	progressValue = 0;
 
 	if (stageID == STAGE_STARTMENU) {
 		currentStage->bg = gdip_Start_Background;  // 使用 GDI+ Bitmap

@@ -69,6 +69,11 @@ namespace Gdiplus {
 #define BUTTON_LEVEL2				1004
 #define BUTTON_LEVEL3				1005
 
+// 新增：暂停菜单按钮
+#define BUTTON_RESUME				1006
+#define BUTTON_RESTART				1007
+#define BUTTON_RETURN				1008
+
 // 计时器配置
 #define TIMER_GAMETIMER				1
 #define TIMER_GAMETIMER_ELAPSE		30
@@ -109,6 +114,11 @@ extern Gdiplus::Bitmap* gdip_Level1Button;
 extern Gdiplus::Bitmap* gdip_Level2Button;
 extern Gdiplus::Bitmap* gdip_Level3Button;
 
+// 新增：暂停菜单按钮
+extern Gdiplus::Bitmap* gdip_ResumeButton;
+extern Gdiplus::Bitmap* gdip_RestartButton;
+extern Gdiplus::Bitmap* gdip_ReturnButton;
+
 // 全局游戏状态
 extern Stage* currentStage;
 extern std::vector<Unit*> units;
@@ -125,6 +135,9 @@ extern bool keyRightDown;
 
 // 游戏进度
 extern int progressValue;
+
+// 新增：游戏暂停状态
+extern bool gamePaused;
 
 // 帧序列数据
 extern int FRAMES_HOLD[];

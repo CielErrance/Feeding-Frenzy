@@ -18,6 +18,20 @@ void KeyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	case VK_RIGHT:
 		keyRightDown = true;
 		break;
+	case VK_ESCAPE:
+		// 处理 ESC 键
+		if (currentStage) {
+			if (currentStage->stageID == STAGE_1) {
+				// 在游戏中按ESC，切换暂停状态
+				gamePaused = !gamePaused;
+				InvalidateRect(hWnd, NULL, FALSE);
+			}
+			else if (currentStage->stageID == STAGE_LEVELSELECT) {
+				// 在关卡选择界面按ESC，回到标题界面
+				InitStage(hWnd, STAGE_STARTMENU);
+			}
+		}
+		break;
 	default:
 		break;
 	}
@@ -57,7 +71,19 @@ void LButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	
 	for (int i = 0; i < buttons.size(); i++) {
 		Button* button = buttons[i];
-		if (button->visible && !button->locked) {  // 锁定的按钮不响应点击
+		
+		// 特殊处理：暂停菜单按钮在暂停时直接可点击，不检查 visible
+		bool canClick = false;
+		if (gamePaused && (button->buttonID == BUTTON_RESUME || 
+		     button->buttonID == BUTTON_RESTART || 
+		          button->buttonID == BUTTON_RETURN)) {
+			canClick = true;  // 暂停时暂停菜单按钮可点击
+		}
+		else if (button->visible && !button->locked) {
+			canClick = true;  // 普通按钮需要 visible 且未锁定
+		}
+		
+		if (canClick) {
 			if (button->x <= mouseX
 				&& button->x + button->width >= mouseX
 				&& button->y <= mouseY
@@ -82,6 +108,21 @@ void LButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				case BUTTON_LEVEL3:
 					// 进入关卡3（目前锁定）
 					// InitStage(hWnd, STAGE_3);
+					break;
+				case BUTTON_RESUME:
+					// 恢复游戏
+					gamePaused = false;
+					InvalidateRect(hWnd, NULL, FALSE);
+					break;
+				case BUTTON_RESTART:
+					// 重新开始当前关卡
+					gamePaused = false;
+					InitStage(hWnd, currentStage->stageID);
+					break;
+				case BUTTON_RETURN:
+					// 回到标题界面
+					gamePaused = false;
+					InitStage(hWnd, STAGE_STARTMENU);
 					break;
 				}
 			}

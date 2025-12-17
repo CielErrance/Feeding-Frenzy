@@ -318,6 +318,53 @@ void Paint(HWND hWnd)
 		graphics.DrawString(text, -1, &font, textPos, &textBrush);
 	}
 
+	// 绘制暂停界面
+	if (gamePaused && currentStage->stageID == STAGE_1) {
+		// 半透明黑色遮罩
+		SolidBrush overlayBrush(Color(180, 0, 0, 0));  // Alpha=180, 约70%不透明
+		graphics.FillRectangle(&overlayBrush, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+		// 绘制 "PAUSED" 文字
+		FontFamily pausedFontFamily(L"Arial");
+		Font pausedFont(&pausedFontFamily, 72, FontStyleBold, UnitPixel);
+		SolidBrush pausedTextBrush(Color(255, 255, 255, 255));
+
+		// 计算文字居中位置
+		StringFormat format;
+		format.SetAlignment(StringAlignmentCenter);
+		format.SetLineAlignment(StringAlignmentCenter);
+
+		RectF pausedRect(0, 100, (REAL)WINDOW_WIDTH, 100);
+		graphics.DrawString(L"PAUSED", -1, &pausedFont, pausedRect, &format, &pausedTextBrush);
+
+		// 绘制暂停菜单按钮
+		for (int i = 0; i < buttons.size(); i++) {
+			Button* button = buttons[i];
+			if (button->buttonID == BUTTON_RESUME ||
+				button->buttonID == BUTTON_RESTART ||
+				button->buttonID == BUTTON_RETURN) {
+
+				Gdiplus::Bitmap* buttonImage = NULL;
+				switch (button->buttonID) {
+				case BUTTON_RESUME:
+					buttonImage = gdip_ResumeButton;
+					break;
+				case BUTTON_RESTART:
+					buttonImage = gdip_RestartButton;
+					break;
+				case BUTTON_RETURN:
+					buttonImage = gdip_ReturnButton;
+					break;
+				}
+
+				if (buttonImage) {
+					DrawImage(graphics, buttonImage,
+						button->x, button->y, button->width, button->height);
+				}
+			}
+		}
+	}
+
 	// 复制到窗口
 	BitBlt(hdc_window, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, hdc_memBuffer, 0, 0, SRCCOPY);
 

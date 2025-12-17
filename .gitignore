@@ -47,3 +47,7 @@ src/FishGame/x64/Debug/FishGame.exe
 # Windows 临时文件
 Thumbs.db
 Desktop.ini
+
+# office 临时文件
+~$*.docx
+~$*.xlsx

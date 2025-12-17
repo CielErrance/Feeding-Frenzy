@@ -29,6 +29,11 @@ Gdiplus::Bitmap* gdip_Level1Button = NULL;
 Gdiplus::Bitmap* gdip_Level2Button = NULL;
 Gdiplus::Bitmap* gdip_Level3Button = NULL;
 
+// 暂停菜单按钮
+Gdiplus::Bitmap* gdip_ResumeButton = NULL;
+Gdiplus::Bitmap* gdip_RestartButton = NULL;
+Gdiplus::Bitmap* gdip_ReturnButton = NULL;
+
 // 全局游戏状态初始化
 Stage* currentStage = NULL;
 std::vector<Unit*> units;
@@ -45,6 +50,9 @@ bool keyRightDown = false;
 
 // 游戏进度初始化
 int progressValue = 0;
+
+// 游戏暂停状态
+bool gamePaused = false;
 
 // 帧序列定义
 int FRAMES_HOLD[] = { 0 };
